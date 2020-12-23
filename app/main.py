@@ -59,9 +59,11 @@ async def get_current_user_from_token(token: str = Depends(oauth2_scheme)) -> in
 
 
 @app.get("/v1/samples", response_model = List[models.Sample])
-async def return_all_samples(current_user: int = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)):
-    return database.get_all_samples_by_user(db, current_user)
+async def return_all_samples(user_id: Optional[int] = None,
+        card_id: Optional[int] = None,
+        current_user: int = Depends(get_current_user_from_token),
+        db: Session = Depends(get_db)):
+    return database.get_all_samples(db, user_id, card_id)
 
 
 @app.get("/v1/samples/{sample_id}", response_model = models.Sample)
@@ -77,10 +79,48 @@ async def return_specific_sample(current_user: int = Depends(get_current_user_fr
     return ret
 
 
+@app.post("/v1/samples", response_model = models.NewSampleID)
+async def create_new_sample(sample: models.SampleNew,
+        current_user: int = Depends(get_current_user_from_token),
+        db: Session = Depends(get_db)):
+    new_id = database.insert_new_sample(db, sample)
+    return models.NewSampleID(id = new_id)
+
+
+@app.patch("/v1/samples/{sample_id}", response_model = None)
+async def update_sample(to_update: models.SampleUpdate,
+        sample_id: int = Path(...),
+        current_user: int = Depends(get_current_user_from_token),
+        db: Session = Depends(get_db)):
+    try:
+        database.update_sample(db, sample_id, to_update)
+    except database.DBException:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = "Sample with given ID not found"
+        )
+
+
+@app.delete("/v1/samples/{sample_id}", response_model = None)
+async def remove_sample(sample_id: int = Path(...),
+        current_user: int = Depends(get_current_user_from_token),
+        db: Session = Depends(get_db)):
+    try:
+        database.delete_sample(db, sample_id)
+    except database.DBException:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = "Sample with given ID not found"
+        )
+
+
+
 @app.get("/v1/wishes", response_model = List[models.Wish])
-async def return_all_wishes(current_user: int = Depends(get_current_user_from_token),
-    db: Session = Depends(get_db)):
-    return database.get_all_wishes_by_user(db, current_user)
+async def return_all_wishes(user_id: Optional[int] = None,
+        card_id: Optional[int] = None,
+        current_user: int = Depends(get_current_user_from_token),
+        db: Session = Depends(get_db)):
+    return database.get_all_wishes(db, user_id, card_id)
 
 
 @app.get("/v1/wishes/{wish_id}", response_model = models.Wish)
@@ -94,6 +134,42 @@ async def return_specific_wish(current_user: int = Depends(get_current_user_from
             detail = "Wish with given ID not found",
         )
     return ret
+
+
+@app.post("/v1/wishes", response_model = models.NewWishID)
+async def create_new_wish(wish: models.WishNew,
+        current_user: int = Depends(get_current_user_from_token),
+        db: Session = Depends(get_db)):
+    new_id = database.insert_new_wish(db, wish)
+    return models.NewWishID(id = new_id)
+
+
+@app.patch("/v1/wishes/{wish_id}", response_model = None)
+async def update_wish(to_update: models.WishUpdate,
+        wish_id: int = Path(...),
+        current_user: int = Depends(get_current_user_from_token),
+        db: Session = Depends(get_db)):
+    try:
+        database.update_wish(db, wish_id, to_update)
+    except database.DBException:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = "Wish with given ID not found"
+        )
+
+
+@app.delete("/v1/wishes/{wish_id}", response_model = None)
+async def remove_wish(wish_id: int = Path(...),
+        current_user: int = Depends(get_current_user_from_token),
+        db: Session = Depends(get_db)):
+    try:
+        database.delete_wish(db, wish_id)
+    except database.DBException:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = "Wish with given ID not found"
+        )
+
 
 
 @app.get("/health/live", response_model = str)

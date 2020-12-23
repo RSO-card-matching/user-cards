@@ -17,10 +17,37 @@ class Sample(BaseModel):
     state: str
     wts: bool
 
+class SampleNew(BaseModel):
+    user_id: int
+    card_id: int
+    state: str
+    wts: bool
+
+class SampleUpdate(BaseModel):
+    user_id: Optional[int] = None
+    card_id: Optional[int] = None
+    state: Optional[str] = None
+    wts: Optional[bool] = None
+
+class NewSampleID(BaseModel):
+    id: int
+
+
 class Wish(BaseModel):
     id: int
     user_id: int
     card_id: int
+
+class WishNew(BaseModel):
+    user_id: int
+    card_id: int
+
+class WishUpdate(BaseModel):
+    user_id: Optional[int]
+    card_id: Optional[int]
+
+class NewWishID(BaseModel):
+    id: int
 
 
 class SampleModel(Base):

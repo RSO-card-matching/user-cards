@@ -6,6 +6,7 @@ from os import getenv
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Path, status
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
@@ -38,6 +39,14 @@ if (getenv("OAUTH_TOKEN_PROVIDER") == None):
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl = getenv("OAUTH_TOKEN_PROVIDER") + "/tokens")
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex = r"https:\/\/.*cardmatching.ovh.*",
+    allow_credentials = True,
+    allow_methods = ["*"],
+    allow_headers = ["*"],
+)
 
 
 

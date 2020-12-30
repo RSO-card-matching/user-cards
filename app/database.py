@@ -3,6 +3,7 @@ from os import getenv
 
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.exc import OperationalError
 
 from . import models
 
@@ -13,7 +14,9 @@ if db_ip:
 else:
     SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args = {
+    "connect_timeout": 1
+})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -200,3 +203,11 @@ def delete_wish(db: Session, wid: int) -> None:
         raise DBException
     wish_model.delete()
     db.commit()
+
+
+def test_connection(db: Session) -> bool:
+    try:
+        db.query(models.SampleModel).first()
+        return True
+    except OperationalError:
+        return False

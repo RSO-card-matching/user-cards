@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from typing import Optional, List
 from os import getenv
-import requests
+import requests, json
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Path, status
 from fastapi.security import OAuth2PasswordBearer
@@ -111,7 +111,7 @@ async def create_new_sample(sample: models.SampleNew,
     new_id = database.insert_new_sample(db, sample)
     requests.post(
         getenv("CARD_MATCHER_IP") + "/v1/matches/samples",
-        data = sample.__dict__,
+        data = json.dumps(sample.__dict__),
         headers = {
             "accept": "application/json",
             "Authorization": "Bearer " + create_system_token()
@@ -129,7 +129,7 @@ async def update_sample(to_update: models.SampleUpdate,
         database.update_sample(db, sample_id, to_update)
         requests.post(
             getenv("CARD_MATCHER_IP") + "/v1/matches/samples",
-            data = database.get_sample_by_id(db, sample_id).__dict__,
+            data = json.dumps(database.get_sample_by_id(db, sample_id).__dict__),
             headers = {
                 "accept": "application/json",
                 "Authorization": "Bearer " + create_system_token()

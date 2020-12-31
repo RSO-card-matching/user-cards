@@ -75,6 +75,13 @@ async def get_current_user_from_token(token: str = Depends(oauth2_scheme)) -> in
     return uid
 
 
+def create_system_token() -> str:
+    expire = datetime.utcnow() + timedelta(minutes = ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode = {"sub": "0", "exp": expire}
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm = ALGORITHM)
+    return encoded_jwt
+
+
 
 @app.get("/v1/samples", response_model = List[models.Sample])
 async def return_all_samples(user_id: Optional[int] = None,
@@ -102,6 +109,14 @@ async def create_new_sample(sample: models.SampleNew,
         current_user: int = Depends(get_current_user_from_token),
         db: Session = Depends(get_db)):
     new_id = database.insert_new_sample(db, sample)
+    requests.post(
+        getenv("CARD_MATCHER_IP") + "/v1/matches/samples",
+        data = sample.__dict__,
+        headers = {
+            "accept": "application/json",
+            "Authorization": "Bearer " + create_system_token()
+        }
+    )
     return models.NewSampleID(id = new_id)
 
 
@@ -112,6 +127,14 @@ async def update_sample(to_update: models.SampleUpdate,
         db: Session = Depends(get_db)):
     try:
         database.update_sample(db, sample_id, to_update)
+        requests.post(
+            getenv("CARD_MATCHER_IP") + "/v1/matches/samples",
+            data = database.get_sample_by_id(db, sample_id).__dict__,
+            headers = {
+                "accept": "application/json",
+                "Authorization": "Bearer " + create_system_token()
+            }
+        )
     except database.DBException:
         raise HTTPException(
             status_code = status.HTTP_404_NOT_FOUND,

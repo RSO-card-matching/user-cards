@@ -87,7 +87,7 @@ async def async_post(ip: str, data, headers) -> None:
 
 
 async def async_patch(ip: str, data, headers) -> None:
-    requests.post(ip, data = data, headers = headers)
+    requests.patch(ip, data = data, headers = headers)
 
 
 

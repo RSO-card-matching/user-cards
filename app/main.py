@@ -82,6 +82,10 @@ def create_system_token() -> str:
     return encoded_jwt
 
 
+async def async_post(ip: str, data, headers) -> None:
+    requests.post(ip, data = data, headers = headers)
+
+
 
 @app.get("/v1/samples", response_model = List[models.Sample])
 async def return_all_samples(user_id: Optional[int] = None,
@@ -109,8 +113,8 @@ async def create_new_sample(sample: models.SampleNew,
         current_user: int = Depends(get_current_user_from_token),
         db: Session = Depends(get_db)):
     new_id = database.insert_new_sample(db, sample)
-    requests.post(
-        getenv("CARD_MATCHER_IP") + "/v1/matches/samples",
+    await async_post(
+        ip = getenv("CARD_MATCHER_IP") + "/v1/matches/samples",
         data = json.dumps(sample.__dict__),
         headers = {
             "accept": "application/json",

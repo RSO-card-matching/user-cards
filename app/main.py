@@ -86,6 +86,10 @@ async def async_post(ip: str, data, headers) -> None:
     requests.post(ip, data = data, headers = headers)
 
 
+async def async_patch(ip: str, data, headers) -> None:
+    requests.post(ip, data = data, headers = headers)
+
+
 
 @app.get("/v1/samples", response_model = List[models.Sample])
 async def return_all_samples(user_id: Optional[int] = None,
@@ -131,7 +135,7 @@ async def update_sample(to_update: models.SampleUpdate,
         db: Session = Depends(get_db)):
     try:
         database.update_sample(db, sample_id, to_update)
-        await async_post(
+        await async_patch(
             ip = getenv("CARD_MATCHER_IP") + "/v1/matches/samples",
             data = json.dumps(database.get_sample_by_id(db, sample_id).__dict__),
             headers = {
@@ -204,7 +208,7 @@ async def update_wish(to_update: models.WishUpdate,
         db: Session = Depends(get_db)):
     try:
         database.update_wish(db, wish_id, to_update)
-        await async_post(
+        await async_patch(
             ip = getenv("CARD_MATCHER_IP") + "/v1/matches/wishes",
             data = json.dumps(database.get_wish_by_id(db, wish_id).__dict__),
             headers = {

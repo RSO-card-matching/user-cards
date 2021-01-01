@@ -186,6 +186,14 @@ async def create_new_wish(wish: models.WishNew,
         current_user: int = Depends(get_current_user_from_token),
         db: Session = Depends(get_db)):
     new_id = database.insert_new_wish(db, wish)
+    await async_post(
+        ip = getenv("CARD_MATCHER_IP") + "/v1/matches/wishes",
+        data = json.dumps(wish.__dict__),
+        headers = {
+            "accept": "application/json",
+            "Authorization": "Bearer " + create_system_token()
+        }
+    )
     return models.NewWishID(id = new_id)
 
 
@@ -196,6 +204,14 @@ async def update_wish(to_update: models.WishUpdate,
         db: Session = Depends(get_db)):
     try:
         database.update_wish(db, wish_id, to_update)
+        await async_post(
+            ip = getenv("CARD_MATCHER_IP") + "/v1/matches/wishes",
+            data = json.dumps(database.get_wish_by_id(db, wish_id).__dict__),
+            headers = {
+                "accept": "application/json",
+                "Authorization": "Bearer " + create_system_token()
+            }
+        )
     except database.DBException:
         raise HTTPException(
             status_code = status.HTTP_404_NOT_FOUND,

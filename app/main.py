@@ -131,8 +131,8 @@ async def update_sample(to_update: models.SampleUpdate,
         db: Session = Depends(get_db)):
     try:
         database.update_sample(db, sample_id, to_update)
-        requests.post(
-            getenv("CARD_MATCHER_IP") + "/v1/matches/samples",
+        await async_post(
+            ip = getenv("CARD_MATCHER_IP") + "/v1/matches/samples",
             data = json.dumps(database.get_sample_by_id(db, sample_id).__dict__),
             headers = {
                 "accept": "application/json",
